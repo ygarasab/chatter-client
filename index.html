@@ -1,0 +1,14 @@
+<html>
+	<body>
+	</body>
+	<script>
+		let con = new WebSocket('ws://localhost:3000');
+		console.log(con);
+	
+		con.onmessage = event => {
+			console.log(event)
+		}
+
+		con.onopen = event => con.send('Bom dia');
+	</script>
+</html>
