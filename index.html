@@ -1,14 +1,89 @@
 <html>
+	<head>
+		<link rel="stylesheet" href="./assets/css/xterm.css" />
+		<link rel="stylesheet" href="assets/css/chatter.css" />
+	</head>
 	<body>
+		<div id="terminal"></div>
 	</body>
+	<script src="./assets/js/xterm.js"></script>
+	<script src="./assets/js/xterm-addon-fit.js"></script>
 	<script>
-		let con = new WebSocket('ws://localhost:3000');
-		console.log(con);
-	
-		con.onmessage = event => {
-			console.log(event)
+		const term = new Terminal({convertEol: true, cursorBlink: true, theme: 'yellow'})
+		const fitAddon = new FitAddon.FitAddon()
+		const con = new WebSocket('ws://localhost:3000')
+
+		let currentLine = ''
+		let id
+
+		term.loadAddon(fitAddon)
+		term.open(document.getElementById('terminal'))
+
+		function writeLinePrefix() {
+			term.write(`[${id}] `)
 		}
 
-		con.onopen = event => con.send('Bom dia');
+		// Writing behavior
+		term.onKey(event => {
+			switch (event.key) {
+				// Enter
+				case '\r':
+					if (currentLine === '') return
+
+					con.send(JSON.stringify({'id': id, 'message': currentLine}))
+
+					currentLine = ''
+
+					term.write('\n')
+					writeLinePrefix()
+
+					break
+				// Backspace
+				case '\x7F':
+					if (currentLine.localeCompare(`[${id}] `) >= 0) {
+						currentLine = currentLine.slice(0, -1)
+						term.write('\b \b')
+					}
+
+					break
+				// Up arrow
+				case '\x1B[A':
+				// Down arrow
+				case '\x1B[B':
+					break
+				// Left arrow
+				case '\x1B[D':
+					if (term.buffer._normal.cursorX - 1 >= `[${id}] `.length) term.write('\x1B[D')
+					break
+				// Right arrow
+				case '\x1B[C':
+					if (term.buffer._normal.cursorX + 1 <= `[${id}] ${currentLine}`.length) term.write('\x1B[C')
+					break
+				default:
+					currentLine += event.key
+					term.write(event.key)
+			}
+		})
+
+		// Printing behavior
+		con.onmessage = event => {
+			const data = JSON.parse(event.data)
+
+			term.write('\x1b[2K\r')
+
+			data.hasOwnProperty('id')
+					? term.write(`[${data.id}] ${data.message}\n`)
+					: term.write(`[SERVER] ${data.message}\n`)
+
+			if (data.hasOwnProperty('newId')) id = parseInt(data.newId)
+
+			writeLinePrefix()
+		}
+
+		fitAddon.fit()
+
+		window.addEventListener('resize', () => fitAddon.fit())
+
+		con.onopen = () => con.send('')
 	</script>
 </html>
