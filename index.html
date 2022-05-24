@@ -11,7 +11,7 @@
 	<script>
 		const term = new Terminal({convertEol: true, cursorBlink: true, theme: 'yellow'})
 		const fitAddon = new FitAddon.FitAddon()
-		const con = new WebSocket('ws://localhost:3000')
+		const con = new WebSocket('wss://chatter.ygarasab.com/ws')
 
 		let currentLine = ''
 		let id
