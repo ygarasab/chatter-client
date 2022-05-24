@@ -25,6 +25,8 @@
 		term.loadAddon(fitAddon)
 		term.open(document.getElementById('terminal'))
 
+		term.textarea.setAttribute("autocomplete", "off")
+		
 		function writeLinePrefix() {
 			term.write(`[${id}] `)
 		}
