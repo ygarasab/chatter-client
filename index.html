@@ -24,8 +24,8 @@
 		}
 
 		// Writing behavior
-		term.onKey(event => {
-			switch (event.key) {
+		term.onData(key => {
+			switch (key) {
 				// Enter
 				case '\r':
 					if (currentLine === '') return
@@ -60,8 +60,8 @@
 					if (term.buffer._normal.cursorX + 1 <= `[${id}] ${currentLine}`.length) term.write('\x1B[C')
 					break
 				default:
-					currentLine += event.key
-					term.write(event.key)
+					currentLine += key
+					term.write(key)
 			}
 		})
 
